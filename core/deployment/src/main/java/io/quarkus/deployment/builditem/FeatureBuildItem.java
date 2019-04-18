@@ -29,6 +29,7 @@ public final class FeatureBuildItem extends MultiBuildItem {
     public static final String KOTLIN = "kotlin";
     public static final String NARAYANA_JTA = "narayana-jta";
     public static final String RESTEASY = "resteasy";
+    public static final String RESTEASY_CLIENT = "resteasy-client";
     public static final String RESTEASY_JSONB = "resteasy-jsonb";
     public static final String SCHEDULER = "scheduler";
     public static final String SECURITY = "security";
