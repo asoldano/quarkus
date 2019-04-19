@@ -23,8 +23,9 @@ import org.apache.commons.logging.impl.Jdk14Logger;
 import org.apache.commons.logging.impl.LogFactoryImpl;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.core.providerfactory.ResteasyProviderFactoryImpl;
+import org.jboss.resteasy.plugins.providers.sse.SseEventProvider;
 
-import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -52,15 +53,21 @@ public class ResteasyClientProcessor {
                 ClientResponseFilter[].class.getName(),
                 javax.ws.rs.ext.ReaderInterceptor[].class.getName()));
 
+        //register classes for reflection
         reflectiveClass.produce(new ReflectiveClassBuildItem(true, false,
-                ResteasyClientBuilder.class.getName()));
+                ResteasyClientBuilder.class.getName(),
+                SseEventProvider.class.getName())); //to allow detection by RegisterBuiltin 
     }
 
     @BuildStep
     void setupProviders(BuildProducer<SubstrateResourceBuildItem> resources,
-            BuildProducer<SubstrateProxyDefinitionBuildItem> proxyDefinition) {
+            BuildProducer<SubstrateProxyDefinitionBuildItem> proxyDefinition,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeans) {
 
         proxyDefinition.produce(new SubstrateProxyDefinitionBuildItem("javax.ws.rs.ext.Providers"));
         resources.produce(new SubstrateResourceBuildItem(PROVIDERS_SERVICE_FILE));
+        //make sure the SseEventProvider is not removed even if not referenced
+        unremovableBeans.produce(new UnremovableBeanBuildItem(
+                new UnremovableBeanBuildItem.BeanClassNameExclusion(SseEventProvider.class.getName())));
     }
 }
